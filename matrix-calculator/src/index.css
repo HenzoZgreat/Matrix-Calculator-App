@@ -1,0 +1,193 @@
+/* app/globals.css */
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+/* Custom Keyframes for Animations */
+@keyframes border-color-pulse {
+  0%,
+  100% {
+    border-color: #a3e635; /* lime-400 */
+  }
+  50% {
+    border-color: #e879f9; /* fuchsia-400 */
+  }
+}
+
+@keyframes text-glow {
+  0%,
+  100% {
+    text-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+  } /* blue-500 */
+  50% {
+    text-shadow: 0 0 15px rgba(99, 102, 241, 0.8);
+  } /* indigo-500 */
+}
+
+@keyframes slide-in-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-out-down {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+/* New keyframes for dropdown slide animation */
+@keyframes fade-in-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-out-slide-down {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+/* Apply these animations using Tailwind classes */
+.animate-border-pulse {
+  animation: border-color-pulse 4s infinite alternate;
+}
+
+.animate-text-glow {
+  animation: text-glow 3s infinite alternate;
+}
+
+.animate-slide-in-up {
+  animation: slide-in-up 0.3s ease-out forwards;
+}
+
+.animate-slide-out-down {
+  animation: slide-out-down 0.3s ease-in forwards;
+}
+
+.animate-fade-in-slide-up {
+  animation: fade-in-slide-up 0.2s ease-out forwards;
+}
+
+.animate-fade-out-slide-down {
+  animation: fade-out-slide-down 0.2s ease-in forwards;
+}
+
+/* Removed @keyframes rotate-border-white as it's no longer used */
+
+/* Custom Scrollbar for better aesthetics */
+.custom-scrollbar::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.5); /* gray-400 with opacity */
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.7); /* darker on hover */
+}
+
+/* Dark mode scrollbar */
+html.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(75, 85, 99, 0.5); /* gray-600 with opacity */
+}
+
+html.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(75, 85, 99, 0.7); /* darker on hover */
+}
+
+/* Custom CSS Variables for Dark Mode Colors */
+:root {
+  /* Light mode defaults (adjusted for whiter text) */
+  --color-bg-primary: #f3f4f6; /* gray-100 */
+  --color-bg-secondary: #e5e7eb; /* gray-200 - changed from white */
+  --color-text-primary: #111827; /* default dark text for light mode */
+  --color-text-secondary: #374151; /* default dark text for light mode */
+  --color-border-light: #d1d5db; /* gray-300 */
+  --color-border-dark: #9ca3af; /* gray-400 */
+  --color-card-bg: #f9fafb; /* gray-50 */
+  --color-placeholder-light-mode: #374151; /* gray-700 */
+  --color-placeholder-dark-mode: #d1d5db; /* gray-300 */
+}
+
+.dark {
+  /* Dark mode custom colors */
+  --color-bg-primary: #1c0c5b; /* 1C0C5B */
+  --color-bg-secondary: #3d2c8d; /* 3D2C8D */
+  --color-text-primary: #ffffff; /* pure white */
+  --color-text-secondary: #f3f4f6; /* light gray for secondary text */
+  --color-border-light: #916bbf; /* 916BBF */
+  --color-border-dark: #c996cc; /* C996CC */
+  --color-card-bg: #2a1e6e; /* A darker shade for cards */
+  --color-placeholder-light-mode: #374151; /* gray-700 */
+  --color-placeholder-dark-mode: #d1d5db; /* gray-300 */
+}
+
+/* Apply custom variables to Tailwind's utility classes */
+@layer base {
+  body {
+    @apply bg-gray-100 text-gray-900 dark:bg-[var(--color-bg-primary)] dark:text-[var(--color-text-primary)];
+  }
+
+  /* General card/panel styling */
+  .bg-white {
+    @apply dark:bg-[var(--color-bg-secondary)];
+  }
+  .bg-gray-50 {
+    @apply dark:bg-[var(--color-card-bg)];
+  }
+
+  /* Text colors */
+  .text-gray-700 {
+    @apply dark:text-[var(--color-text-secondary)];
+  }
+  .text-gray-800 {
+    @apply dark:text-[var(--color-text-primary)];
+  }
+  .text-gray-900 {
+    @apply dark:text-[var(--color-text-primary)];
+  }
+  .text-gray-500 {
+    @apply dark:text-gray-400; /* Keep default gray-400 for subtle text */
+  }
+
+  /* Border colors */
+  .border-gray-200 {
+    @apply dark:border-[var(--color-border-light)];
+  }
+  .border-gray-300 {
+    @apply dark:border-[var(--color-border-light)];
+  }
+  .border-gray-600 {
+    @apply dark:border-[var(--color-border-dark)];
+  }
+}
