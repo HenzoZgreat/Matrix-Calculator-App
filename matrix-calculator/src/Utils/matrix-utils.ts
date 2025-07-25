@@ -454,3 +454,74 @@ export const luDecomposition = (matrix: number[][]): { L: number[][]; U: number[
 
   return { L, U }
 }
+
+
+/**
+ * Adds two matrices of the same dimensions.
+ * @param matrix1 First matrix.
+ * @param matrix2 Second matrix.
+ * @returns The sum of the matrices, or null if dimensions are incompatible.
+ */
+export const addMatrices = (matrix1: number[][], matrix2: number[][]): number[][] | null => {
+  const rows1 = matrix1.length;
+  const cols1 = matrix1[0]?.length || 0;
+  const rows2 = matrix2.length;
+  const cols2 = matrix2[0]?.length || 0;
+
+  if (rows1 !== rows2 || cols1 !== cols2) {
+    return null;
+  }
+
+  const result: number[][] = Array.from({ length: rows1 }, () => Array(cols1).fill(0));
+  for (let i = 0; i < rows1; i++) {
+    for (let j = 0; j < cols1; j++) {
+      result[i][j] = matrix1[i][j] + matrix2[i][j];
+    }
+  }
+  return result;
+};
+
+/**
+ * Multiplies two matrices.
+ * @param matrix1 First matrix.
+ * @param matrix2 Second matrix.
+ * @returns The product of the matrices, or null if dimensions are incompatible.
+ */
+export const multiplyMatrices = (matrix1: number[][], matrix2: number[][]): number[][] | null => {
+  const rows1 = matrix1.length;
+  const cols1 = matrix1[0]?.length || 0;
+  const rows2 = matrix2.length;
+  const cols2 = matrix2[0]?.length || 0;
+
+  if (cols1 !== rows2) {
+    return null;
+  }
+
+  const result: number[][] = Array.from({ length: rows1 }, () => Array(cols2).fill(0));
+  for (let i = 0; i < rows1; i++) {
+    for (let j = 0; j < cols2; j++) {
+      for (let k = 0; k < cols1; k++) {
+        result[i][j] += matrix1[i][k] * matrix2[k][j];
+      }
+    }
+  }
+  return result;
+};
+
+/**
+ * Multiplies a matrix by a scalar.
+ * @param scalar The scalar value.
+ * @param matrix The input matrix.
+ * @returns The scaled matrix.
+ */
+export const scalarMultiplyMatrix = (scalar: number, matrix: number[][]): number[][] => {
+  const rows = matrix.length;
+  const cols = matrix[0]?.length || 0;
+  const result: number[][] = Array.from({ length: rows }, () => Array(cols).fill(0));
+  for (let i = 0; i < rows; i++) {
+    for (let j = 0; j < cols; j++) {
+      result[i][j] = scalar * matrix[i][j];
+    }
+  }
+  return result;
+};

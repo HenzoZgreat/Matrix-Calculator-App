@@ -47,6 +47,9 @@ import {
   luDecomposition, // Import new function
   type Matrix,
   type OperationResult,
+  scalarMultiplyMatrix,
+  multiplyMatrices,
+  addMatrices,
 } from "./Utils/matrix-utils" // Adjust path as needed
 
 export default function MatrixCalculatorApp() {
@@ -501,27 +504,190 @@ export default function MatrixCalculatorApp() {
     [matrices],
   )
 
+  // ================================================================================================
   const handleEvaluateEquation = useCallback((expression: string) => {
-    // This is where you would implement your expression parsing and evaluation logic.
-    // For now, it's a placeholder.
+  // Helper to add result to state
+  const addResult = (resultData: string | number | number[][], matrixLabel = "Equation", operation = "Evaluate") => {
     setResults((prev) => [
       ...prev,
       {
         id: `res-${Date.now()}`,
         matrixId: "",
-        matrixLabel: "Equation",
-        operation: "Evaluate",
-        resultData: `Evaluating expression: "${expression}" (Parsing logic not implemented)`,
+        matrixLabel,
+        operation,
+        resultData,
       },
-    ])
-    console.log("Expression to evaluate:", expression)
+    ]);
     if (resultDisplayRef.current) {
-      resultDisplayRef.current.scrollIntoView({ behavior: "smooth" })
+      resultDisplayRef.current.scrollIntoView({ behavior: "smooth" });
     }
-    // You would typically parse 'expression', identify matrix labels (A, B, C),
-    // retrieve their data from the 'matrices' state, perform operations,
-    // and then set the result.
-  }, [])
+  };
+
+  // Tokenize the expression
+  const tokenize = (expr: string): string[] => {
+    const tokens: string[] = [];
+    let i = 0;
+    expr = expr.replace(/\s/g, ""); // Remove whitespace
+    while (i < expr.length) {
+      const char = expr[i];
+      if (/[A-Za-z]/.test(char)) {
+        let identifier = char;
+        while (i + 1 < expr.length && /[A-Za-z0-9]/.test(expr[i + 1])) {
+          identifier += expr[i + 1];
+          i++;
+        }
+        tokens.push(identifier);
+      } else if (/[0-9]/.test(char)) {
+        let number = char;
+        while (i + 1 < expr.length && (/[0-9.]/.test(expr[i + 1]) || expr[i + 1] === ".")) {
+          number += expr[i + 1];
+          i++;
+        }
+        tokens.push(number);
+      } else if ("+-*/^()".includes(char)) {
+        tokens.push(char);
+      } else {
+        addResult(`Invalid character in expression: ${char}`);
+        return [];
+      }
+      i++;
+    }
+    return tokens;
+  };
+
+  // Parse tokens into an expression tree
+  const parseExpression = (tokens: string[]): { result: any; index: number } => {
+    const parseFactor = (index: number): { result: any; index: number } => {
+      let token = tokens[index];
+      if (!token) return { result: null, index };
+
+      if (/[0-9]+(\.[0-9]+)?/.test(token)) {
+        return { result: parseFloat(token), index: index + 1 };
+      }
+
+      if (/[A-Za-z]/.test(token[0])) {
+        const matrix = matrices.find((m) => m.label === token);
+        if (!matrix) {
+          addResult(`Unknown matrix: ${token}`);
+          return { result: null, index };
+        }
+
+        if (tokens[index + 1] === "(") {
+          // Function call, e.g., inv(A), det(A)
+          const func = token.toLowerCase();
+          index += 2; // Skip function name and '('
+          const { result: arg, index: newIndex } = parseFactor(index);
+          if (tokens[newIndex] !== ")") {
+            addResult(`Expected closing parenthesis after ${func}`);
+            return { result: null, index: newIndex };
+          }
+          index = newIndex + 1;
+
+          if (func === "inv") {
+            const inverse = findInverse(arg.data);
+            return inverse ? { result: inverse, index } : { result: null, index };
+          } else if (func === "det") {
+            const det = findDeterminant(arg.data);
+            return det !== null ? { result: det, index } : { result: null, index };
+          } else if (func === "transpose") {
+            return { result: transposeMatrix(arg.data), index };
+          } else if (func === "trace") {
+            const trace = traceMatrix(arg.data);
+            return trace !== null ? { result: trace, index } : { result: null, index };
+          } else {
+            addResult(`Unknown function: ${func}`);
+            return { result: null, index };
+          }
+        }
+
+        return { result: matrix, index: index + 1 };
+      }
+
+      if (token === "(") {
+        const { result, index: newIndex } = parseExpression(tokens.slice(index + 1));
+        if (tokens[newIndex] !== ")") {
+          addResult("Mismatched parentheses");
+          return { result: null, index: newIndex };
+        }
+        return { result, index: newIndex + 1 };
+      }
+
+      addResult(`Unexpected token: ${token}`);
+      return { result: null, index };
+    };
+
+    let result = null;
+    let index = 0;
+
+    // Parse terms (handle * and /)
+    let { result: left, index: newIndex } = parseFactor(index);
+    index = newIndex;
+    while (index < tokens.length && ["*", "/"].includes(tokens[index])) {
+      const op = tokens[index];
+      index++;
+      const { result: right, index: nextIndex } = parseFactor(index);
+      index = nextIndex;
+
+      if (!left || !right) return { result: null, index };
+
+      if (typeof left === "number" && right.data) {
+        // Scalar * Matrix
+        result = scalarMultiplyMatrix(left, right.data);
+      } else if (left.data && right.data) {
+        // Matrix * Matrix
+        result = multiplyMatrices(left.data, right.data);
+      } else {
+        addResult("Invalid operands for multiplication");
+        return { result: null, index };
+      }
+      left = result;
+    }
+
+    result = left;
+
+    // Parse expressions (handle + and -)
+    while (index < tokens.length && ["+", "-"].includes(tokens[index])) {
+      const op = tokens[index];
+      index++;
+      const { result: right, index: nextIndex } = parseFactor(index);
+      index = nextIndex;
+
+      if (!result || !right) return { result: null, index };
+
+      if (result.data && right.data) {
+        result = op === "+" ? addMatrices(result.data, right.data) : addMatrices(result.data, scalarMultiplyMatrix(-1, right.data));
+      } else {
+        addResult("Invalid operands for addition/subtraction");
+        return { result: null, index };
+      }
+    }
+
+    // Handle exponentiation
+    if (index < tokens.length && tokens[index] === "^") {
+      index++;
+      const { result: exponent, index: nextIndex } = parseFactor(index);
+      index = nextIndex;
+
+      if (typeof result === "number" && typeof exponent === "number") {
+        result = Math.pow(result, exponent);
+      } else {
+        addResult("Exponentiation only supported for scalars");
+        return { result: null, index };
+      }
+    }
+
+    return { result, index };
+  };
+
+  const tokens = tokenize(expression);
+  if (!tokens.length) return;
+
+  const { result } = parseExpression(tokens);
+  if (result === null) return;
+
+  addResult(result.data || result, "Equation", "Evaluate");
+}, [matrices, setResults, resultDisplayRef]);
+  // ================================================================================================
 
   const matrixLabels = matrices.map((m) => m.label)
   const selectedMatrixIds = matrices.filter((m) => m.isSelected).map((m) => m.id)
@@ -531,10 +697,11 @@ export default function MatrixCalculatorApp() {
       className="min-h-screen bg-gray-100 dark:bg-[var(--color-bg-primary)] text-gray-900 dark:text-gray-100 transition-colors duration-300"
       style={{
         background: `
-          url('https://static.vecteezy.com/system/resources/thumbnails/002/034/021/small_2x/abstract-dynamic-light-blue-overlap-square-shape-on-background-modern-and-minimal-concept-you-can-use-for-cover-brochure-template-poster-banner-web-print-ad-etc-illustration-vector.jpg') no-repeat top / 100% 400px, /* Image height increased to 400px */
-          linear-gradient(to top, #8DBCC7, #A4CCD9, #C4E1E6) no-repeat 0px 200px / 100% calc(100% - 200px) /* Gradient starts at 200px, creating 200px overlap */
+          linear-gradient(to bottom, transparent 0%, rgba(156, 169, 175, 1) 500px), /* Gradient on top to fade image */
+          url('https://static.vecteezy.com/system/resources/previews/059/500/705/non_2x/an-abstract-geometric-background-with-a-low-poly-triangular-pattern-in-shades-of-gray-and-blue-creating-a-modern-and-stylish-digital-design-vector.jpg') no-repeat top / 100% 500px
         `,
-        backgroundAttachment: "fixed", // Keep background fixed relative to viewport
+        backgroundAttachment: "fixed",
+        // Removed backgroundBlendMode: "overlay" for a cleaner fade
       }}
     >
       <GlobalToolsMenu
@@ -542,12 +709,10 @@ export default function MatrixCalculatorApp() {
         selectedMatrixIds={selectedMatrixIds}
         matrices={matrices}
       />
-      <div className="container mx-auto p-4 space-y-6 backdrop-blur-sm bg-transparent min-h-screen pt-20">
+      <div className="container mx-auto p-4 space-y-6 bg-transparent min-h-screen pt-20">
         {" "}
         {/* Added pt-20 for fixed header */}
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-extrabold text-text-primary">Matrix Calculator</h1> {/* Re-added title */}
-        </div>
+        <h1 className="text-4xl font-extrabold text-text-primary mb-8">Matrix Calculator</h1> {/* Re-added title */}
         {/* Top section for controls (MatrixCreator, EquationInput) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-grow">
           <MatrixCreator onCreateMatrix={handleCreateMatrix} currentMatrixCount={matrices.length} />

@@ -5,6 +5,7 @@ import type React from "react"
 import { useState, useCallback, useEffect } from "react"
 import type { Matrix } from "../../Utils/matrix-utils"
 import { MatrixCard } from "./MatrixCard"
+import { MatrixOperationDropdown } from "./MatrixOperationDropdown" // Import the new component
 
 interface MatrixListProps {
   matrices: Matrix[]
@@ -55,7 +56,7 @@ export const MatrixList: React.FC<MatrixListProps> = ({
 
   if (isDesktop) {
     return (
-      <div className="bg-transparent backdrop-blur-sm p-6 rounded-lg shadow-xl transition-colors duration-300 w-full h-auto">
+      <div className="bg-transparent backdrop-blur-sm p-6 rounded-lg shadow-xl transition-colors duration-300 w-full h-auto relative">
         <h2 className="text-xl font-semibold mb-4 text-text-secondary">Matrix Editor</h2>
         {matrices.length === 0 ? (
           <p className="text-gray-500 dark:text-gray-400">
@@ -63,6 +64,17 @@ export const MatrixList: React.FC<MatrixListProps> = ({
           </p>
         ) : (
           <>
+            {/* Matrix Operation Dropdown for the active matrix */}
+            {activeMatrix && (
+              <div className="absolute top-4 right-4 z-20">
+                <MatrixOperationDropdown
+                  matrixId={activeMatrix.id}
+                  matrixLabel={activeMatrix.label}
+                  onOperationSelect={onOperationSelect}
+                />
+              </div>
+            )}
+
             {/* Tab Buttons (Chrome-like) */}
             <div className="flex flex-wrap gap-1 mb-4 border-b border-border-light custom-scrollbar overflow-x-auto">
               {matrices.map((matrix) => (
@@ -126,7 +138,7 @@ export const MatrixList: React.FC<MatrixListProps> = ({
                 onCopyThisMatrix={onCopyMatrix}
                 onPasteToThisMatrix={onPasteMatrix}
                 onDeleteMatrix={onDeleteMatrix}
-                onOperationSelect={onOperationSelect}
+                onOperationSelect={onOperationSelect} // Still passed for mobile view's individual cards
                 copiedMatrixData={copiedMatrixData}
                 copiedMatrixDims={copiedMatrixDims}
               />

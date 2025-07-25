@@ -66,12 +66,12 @@ export const MatrixCreator: React.FC<MatrixCreatorProps> = ({ onCreateMatrix, cu
   }, [rows, cols, onCreateMatrix, currentMatrixCount, matrixType])
 
   return (
-    <div className="relative z-20 bg-transparent backdrop-blur-sm p-6 rounded-lg shadow-md border-2 border-transparent animate-border-pulse transition-colors duration-300">
-      <h2 className="text-xl font-semibold mb-4 text-text-secondary">Create New Matrix</h2>
+    <div className="relative z-20 bg-transparent backdrop-blur-md p-6 rounded-lg shadow-xl border-2 border-transparent animate-border-pulse transition-colors duration-300">
+      <h2 className="text-2xl font-semibold mb-4 text-text-primary">Create New Matrix</h2>
       <div className="flex flex-col gap-4 mb-4">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <label htmlFor="rows" className="text-text-secondary w-12">
+            <label htmlFor="rows" className="text-text-primary text-lg w-12">
               Rows:
             </label>
             <input
@@ -84,7 +84,7 @@ export const MatrixCreator: React.FC<MatrixCreatorProps> = ({ onCreateMatrix, cu
             />
           </div>
           <div className="flex items-center gap-2">
-            <label htmlFor="cols" className="text-text-secondary w-12">
+            <label htmlFor="cols" className="text-text-primary text-lg w-12">
               Cols:
             </label>
             <input
@@ -98,7 +98,7 @@ export const MatrixCreator: React.FC<MatrixCreatorProps> = ({ onCreateMatrix, cu
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <label htmlFor="matrixType" className="text-text-secondary">
+          <label htmlFor="matrixType" className="text-text-primary text-lg">
             Type:
           </label>
           <MatrixTypeDropdown

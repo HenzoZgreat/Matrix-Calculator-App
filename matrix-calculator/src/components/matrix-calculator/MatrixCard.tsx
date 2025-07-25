@@ -6,6 +6,7 @@ import { useMemo } from "react"
 import { CopyIcon, ClipboardPasteIcon as PasteIcon, Trash2Icon } from "lucide-react"
 import type { Matrix } from "../../Utils/matrix-utils"
 import { MatrixEditor } from "./MatrixEditor"
+// Removed import for MatrixOperationDropdown
 
 interface MatrixCardProps {
   matrix: Matrix
@@ -26,6 +27,7 @@ export const MatrixCard: React.FC<MatrixCardProps> = ({
   onCopyThisMatrix,
   onPasteToThisMatrix,
   onDeleteMatrix,
+  // Removed onOperationSelect from destructuring
   copiedMatrixData,
   copiedMatrixDims,
 }) => {
@@ -56,6 +58,7 @@ export const MatrixCard: React.FC<MatrixCardProps> = ({
               onChange={(e) => onSelectMatrix(matrix.id, e.target.checked)}
               className="h-5 w-5 text-blue-600 dark:text-blue-400 border-border-light rounded focus:ring-blue-500 dark:focus:ring-blue-400 bg-bg-secondary transition-colors duration-300"
             />
+            {/* Removed MatrixOperationDropdown from here */}
             <button
               onClick={() => onDeleteMatrix(matrix.id)}
               className="p-1 rounded-full bg-red-500 hover:bg-red-600 text-white transition-colors duration-200"
