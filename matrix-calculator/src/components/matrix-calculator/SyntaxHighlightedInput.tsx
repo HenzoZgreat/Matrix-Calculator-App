@@ -88,7 +88,7 @@ export const SyntaxHighlightedInput: React.FC<SyntaxHighlightedInputProps> = ({
     const syncDimensions = () => {
       if (inputRef.current && highlightRef.current && containerRef.current) {
         const inputRect = inputRef.current.getBoundingClientRect()
-        const containerRect = containerRef.current.getBoundingClientRect()
+        // const containerRect = containerRef.current.getBoundingClientRect()
 
         highlightRef.current.style.width = `${inputRect.width}px`
         highlightRef.current.style.height = `${inputRect.height}px`

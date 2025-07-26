@@ -48,10 +48,13 @@ export const getAllFunctions = (): string[] => {
 
 // Helper function to add custom functions to existing categories
 export const addCustomFunctions = (category: keyof typeof FUNCTION_CATEGORIES, functions: string[]): string[] => {
+    console.log(`Adding custom functions to category: ${category}`, functions)
   const existingFunctions = getAllFunctions()
   const newFunctions = functions.filter((f) => !existingFunctions.includes(f))
   return [...existingFunctions, ...newFunctions]
 }
+
+
 
 // Configuration manager for syntax highlighting
 export class SyntaxConfig {
