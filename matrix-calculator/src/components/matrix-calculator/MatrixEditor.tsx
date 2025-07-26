@@ -3,7 +3,7 @@
 
 import type React from "react"
 import { useRef, useCallback } from "react"
-import type { Matrix } from "../../Utils/matrix-utils" // Adjust path as needed
+import type { Matrix } from "../../Utils/matrix" // Adjust path as needed
 
 interface MatrixEditorProps {
   matrix: Matrix

@@ -4,7 +4,7 @@
 import type React from "react"
 import { useState, useCallback, useMemo } from "react"
 import { SettingsIcon, ChevronDownIcon } from "lucide-react"
-import type { Matrix } from "../../Utils/matrix-utils" // Adjust path as needed
+import type { Matrix } from "../../Utils/matrix" // Adjust path as needed
 
 interface GlobalToolsMenuProps {
   onOperationSelect: (operation: string, matrixId: string) => void

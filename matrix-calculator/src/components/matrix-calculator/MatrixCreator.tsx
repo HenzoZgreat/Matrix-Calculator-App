@@ -3,7 +3,7 @@
 
 import type React from "react"
 import { useState, useCallback, useMemo } from "react"
-import { getNextMatrixLabel } from "../../Utils/matrix-utils" // Adjust path as needed
+import { getNextMatrixLabel } from "../../Utils/matrix" // Adjust path as needed
 import { MatrixTypeDropdown } from "./MatrixTypeDropdown"
 
 interface MatrixCreatorProps {
@@ -41,10 +41,10 @@ export const MatrixCreator: React.FC<MatrixCreatorProps> = ({ onCreateMatrix, cu
         ].sort((a, b) => a.label.localeCompare(b.label)),
       },
       {
-        category: "Advanced Properties (Placeholder)",
+        category: "Advanced Properties",
         types: [
           { value: "boolean", label: "Boolean Matrix" },
-          { value: "hermitian", label: "Hermitian Matrix" },
+          // { value: "hermitian", label: "Hermitian Matrix" },
           { value: "idempotent", label: "Idempotent Matrix" },
           { value: "involutory", label: "Involutory Matrix" },
           { value: "left-stochastic", label: "Left Stochastic Matrix" },

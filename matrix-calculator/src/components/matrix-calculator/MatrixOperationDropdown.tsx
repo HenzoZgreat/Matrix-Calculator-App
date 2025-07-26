@@ -78,12 +78,12 @@ export const MatrixOperationDropdown: React.FC<MatrixOperationDropdownProps> = (
       {isOpen && (
         <div
           className={`origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-bg-secondary ring-1 ring-black ring-opacity-5 focus:outline-none z-10
-            ${isOpen ? "animate-fade-in-slide-up" : "animate-fade-out-slide-down"}`}
+          ${isOpen ? "animate-fade-in-slide-up" : "animate-fade-out-slide-down"}`}
           role="menu"
           aria-orientation="vertical"
           aria-labelledby="menu-button"
         >
-          <div className="py-1" role="none">
+          <div className="py-1 max-h-80 overflow-y-auto custom-scrollbar" role="none">
             {operations.map((op) => (
               <button
                 key={op.value}

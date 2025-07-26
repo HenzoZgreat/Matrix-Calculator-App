@@ -3,7 +3,7 @@
 
 import type React from "react"
 import { useState, useCallback, useEffect } from "react"
-import type { Matrix } from "../../Utils/matrix-utils"
+import type { Matrix } from "../../Utils/matrix"
 import { MatrixCard } from "./MatrixCard"
 import { MatrixOperationDropdown } from "./MatrixOperationDropdown" // Import the new component
 
@@ -56,8 +56,12 @@ export const MatrixList: React.FC<MatrixListProps> = ({
 
   if (isDesktop) {
     return (
-      <div className="bg-transparent backdrop-blur-sm p-6 rounded-lg shadow-xl transition-colors duration-300 w-full h-auto relative">
-        <h2 className="text-xl font-semibold mb-4 text-text-secondary">Matrix Editor</h2>
+      <div
+        className="bg-transparent backdrop-blur-sm p-6 rounded-lg w-full h-auto relative transition-colors duration-300"
+        style={{
+          boxShadow: "0 8px 32px 0 rgba(31, 38, 135, 0.37), 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)"
+        }}
+      >        <h2 className="text-xl font-semibold mb-4 text-text-secondary">Matrix Editor</h2>
         {matrices.length === 0 ? (
           <p className="text-gray-500 dark:text-gray-400">
             No matrices created yet. Use the "Create New Matrix" section above.
@@ -103,7 +107,6 @@ export const MatrixList: React.FC<MatrixListProps> = ({
                   onCopyThisMatrix={onCopyMatrix}
                   onPasteToThisMatrix={onPasteMatrix}
                   onDeleteMatrix={onDeleteMatrix}
-                  onOperationSelect={onOperationSelect}
                   copiedMatrixData={copiedMatrixData}
                   copiedMatrixDims={copiedMatrixDims}
                 />
@@ -138,7 +141,7 @@ export const MatrixList: React.FC<MatrixListProps> = ({
                 onCopyThisMatrix={onCopyMatrix}
                 onPasteToThisMatrix={onPasteMatrix}
                 onDeleteMatrix={onDeleteMatrix}
-                onOperationSelect={onOperationSelect} // Still passed for mobile view's individual cards
+                // onOperationSelect={onOperationSelect} // Still passed for mobile view's individual cards
                 copiedMatrixData={copiedMatrixData}
                 copiedMatrixDims={copiedMatrixDims}
               />

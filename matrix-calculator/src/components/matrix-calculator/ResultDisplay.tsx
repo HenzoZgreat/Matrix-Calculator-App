@@ -2,154 +2,216 @@
 "use client"
 
 import type React from "react"
-import { useCallback } from "react"
-import { CopyIcon, XIcon } from "lucide-react" // Import XIcon
-import type { OperationResult } from "../../Utils/matrix-utils" // Adjust path as needed
+import { useCallback, useMemo } from "react"
+import { XIcon, Trash2Icon, ClipboardIcon } from "lucide-react" // Removed CopyIcon
+import type { OperationResult } from "../../Utils/matrix"
+import type { Matrix } from "../../Utils/matrix"
 
 interface ResultDisplayProps {
   results: OperationResult[] // Now an array of results
   onRemoveResult: (resultId: string) => void // New prop for removing results
+  onClearResults: () => void // New prop for clearing all results
+  matrices: Matrix[] // Available matrices for pasting
+  onPasteResultToMatrix: (resultData: number[][], matrixId: string) => void // New prop for pasting results
+  onShowNotification: (message: string, type: "success" | "error") => void // New prop for notifications
 }
 
-export const ResultDisplay: React.FC<ResultDisplayProps> = ({ results, onRemoveResult }) => {
-  const formatResultForCopy = useCallback(
-    (resultData: string | number | number[][] | { L: number[][]; U: number[][] }) => {
-      if (typeof resultData === "string" || typeof resultData === "number") {
-        return String(resultData)
-      } else if (Array.isArray(resultData) && resultData.every((row) => Array.isArray(row))) {
-        // Format matrix as tab-separated values for rows, newline for new rows
-        return resultData.map((row) => row.map((cell) => String(cell)).join("\t")).join("\n")
-      } else if (typeof resultData === "object" && "L" in resultData && "U" in resultData) {
-        // Format LU decomposition result
-        const L_str = resultData.L.map((row) => row.map((cell) => String(cell)).join("\t")).join("\n")
-        const U_str = resultData.U.map((row) => row.map((cell) => String(cell)).join("\t")).join("\n")
-        return `L Matrix:\n${L_str}\n\nU Matrix:\n${U_str}`
-      }
-      return ""
+export const ResultDisplay: React.FC<ResultDisplayProps> = ({
+  results,
+  onRemoveResult,
+  onClearResults,
+  matrices,
+  onPasteResultToMatrix,
+  onShowNotification,
+}) => {
+  // Removed formatResultForCopy and handleCopyResult as the copy button is removed
+
+  const getCompatibleMatrices = useCallback(
+    (resultData: number[][]) => {
+      const resultRows = resultData.length
+      const resultCols = resultData[0]?.length || 0
+
+      return matrices.filter((matrix) => matrix.rows === resultRows && matrix.cols === resultCols)
     },
-    [],
+    [matrices],
   )
 
-  const handleCopyResult = useCallback(
-    async (resultData: string | number | number[][] | { L: number[][]; U: number[][] }) => {
-      try {
-        await navigator.clipboard.writeText(formatResultForCopy(resultData))
-        alert("Result copied to clipboard!")
-      } catch (err) {
-        console.error("Failed to copy result: ", err)
-        alert("Failed to copy result.")
-      }
+  const handlePasteToMatrix = useCallback(
+    (resultData: number[][], matrixId: string) => {
+      onPasteResultToMatrix(resultData, matrixId)
+      const matrix = matrices.find((m) => m.id === matrixId)
+      onShowNotification(`Result pasted to Matrix ${matrix?.label}!`, "success")
     },
-    [formatResultForCopy],
+    [onPasteResultToMatrix, matrices, onShowNotification],
   )
 
-  if (results.length === 0) {
+  // Helper function to generate the display title
+  const getResultTitle = useCallback((result: OperationResult) => {
+    if (result.operation === "Evaluate" && result.matrixLabel === "Equation") {
+      return result.equation || "Expression Evaluation"
+    } else {
+      return `${result.operation} on Matrix ${result.matrixLabel}`
+    }
+  }, [])
+
+  // Filter out error results (they should be shown as notifications instead)
+  const validResults = useMemo(() => {
+    return results.filter((result) => {
+      // Filter out error messages that should be notifications
+      if (typeof result.resultData === "string") {
+        const errorKeywords = ["error", "failed", "invalid", "cannot", "requires", "unknown"]
+        const isError = errorKeywords.some((keyword) => result.resultData.toString().toLowerCase().includes(keyword))
+        return !isError
+      }
+      return true
+    })
+  }, [results])
+
+  if (validResults.length === 0) {
     return null
   }
 
+  // Reverse the results array to show newest first
+  const reversedResults = [...validResults].reverse()
+
   return (
-    <div className="bg-transparent backdrop-blur-sm p-6 rounded-lg shadow-md border border-border-light transition-colors duration-300 w-full">
-      <h2 className="text-xl font-semibold text-text-secondary mb-4">Results</h2>
-      <div className="flex flex-wrap gap-4 custom-scrollbar max-h-80 overflow-y-auto">
-        {results.map((res) => (
-          <div
-            key={res.id}
-            className="flex-1 min-w-[280px] bg-card-bg p-4 rounded-lg shadow-sm border border-border-light transition-colors duration-300"
-          >
-            <div className="flex justify-between items-center mb-2">
-              <h3 className="font-semibold text-text-primary">
-                {res.operation} on Matrix {res.matrixLabel}
-              </h3>
-              <div className="flex gap-2">
-                {(Array.isArray(res.resultData) && res.resultData.every((row) => Array.isArray(row))) ||
-                (typeof res.resultData === "object" && "L" in res.resultData && "U" in res.resultData) ? (
+    <div
+      className="bg-transparent p-6 rounded-lg w-full shadow-xl backdrop-blur-md"
+      style={{
+        boxShadow:
+          "0 8px 32px 0 rgba(31, 38, 135, 0.37), 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)",
+      }}
+    >
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold text-text-secondary">Results</h2>
+        <button
+          onClick={onClearResults}
+          className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md text-sm transition-colors duration-200 shadow-lg"
+          title="Clear all results"
+        >
+          <Trash2Icon className="w-4 h-4" />
+          Clear All
+        </button>
+      </div>
+      <div className="flex flex-col gap-4 custom-scrollbar max-h-80 overflow-y-auto">
+        {reversedResults.map((res) => {
+          const isMatrixResult = Array.isArray(res.resultData) && res.resultData.every((row) => Array.isArray(row))
+          const compatibleMatrices = isMatrixResult ? getCompatibleMatrices(res.resultData as number[][]) : []
+
+          return (
+            <div
+              key={res.id}
+              className="w-full bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 transition-all duration-300 animate-slide-in-up hover:shadow-xl"
+              style={{
+                boxShadow:
+                  "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.05)",
+              }}
+            >
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="font-semibold text-gray-800 dark:text-gray-200 flex-1 mr-2">{getResultTitle(res)}</h3>
+                <div className="flex gap-2 flex-shrink-0">
+                  {/* Removed Copy Button */}
                   <button
-                    onClick={() => handleCopyResult(res.resultData)}
-                    className="flex items-center gap-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-3 rounded-md text-sm transition-colors duration-200"
+                    onClick={() => onRemoveResult(res.id)}
+                    className="p-1 rounded-full bg-red-500 hover:bg-red-600 text-white transition-colors duration-200 shadow-md"
+                    aria-label={`Remove result for ${getResultTitle(res)}`}
                   >
-                    <CopyIcon className="w-4 h-4" /> Copy
+                    <XIcon className="w-4 h-4" />
                   </button>
-                ) : null}
-                <button
-                  onClick={() => onRemoveResult(res.id)}
-                  className="p-1 rounded-full bg-red-500 hover:bg-red-600 text-white transition-colors duration-200"
-                  aria-label={`Remove result for ${res.operation} on Matrix ${res.matrixLabel}`}
-                >
-                  <XIcon className="w-4 h-4" />
-                </button>
+                </div>
               </div>
-            </div>
-            {typeof res.resultData === "string" || typeof res.resultData === "number" ? (
-              <p className="text-lg font-medium text-text-primary">{res.resultData}</p>
-            ) : Array.isArray(res.resultData) && res.resultData.every((row) => Array.isArray(row)) ? (
-              <div className="overflow-x-auto overflow-y-auto max-h-40">
-                <table className="min-w-full bg-bg-secondary border border-border-light rounded-md">
-                  <tbody>
-                    {res.resultData.map((row, rowIndex) => (
-                      <tr key={rowIndex}>
-                        {row.map((cell, colIndex) => (
-                          <td
-                            key={`${rowIndex}-${colIndex}`}
-                            className="border border-border-light p-2 text-center text-text-secondary"
-                          >
-                            {typeof cell === "number" ? cell.toFixed(2) : String(cell)}
-                          </td>
-                        ))}
-                      </tr>
+
+              {/* Paste to Matrix buttons for matrix results */}
+              {isMatrixResult && compatibleMatrices.length > 0 && (
+                <div className="mb-3 p-2 bg-gray-50 dark:bg-gray-700 rounded-md shadow-inner">
+                  <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">Paste to compatible matrices:</p>
+                  <div className="flex flex-wrap gap-1">
+                    {compatibleMatrices.map((matrix) => (
+                      <button
+                        key={matrix.id}
+                        onClick={() => handlePasteToMatrix(res.resultData as number[][], matrix.id)}
+                        className="flex items-center gap-1 bg-purple-500 hover:bg-purple-600 text-white font-bold py-1 px-2 rounded text-xs transition-colors duration-200 shadow-md"
+                      >
+                        <ClipboardIcon className="w-3 h-3" />
+                        Matrix {matrix.label}
+                      </button>
                     ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : typeof res.resultData === "object" && "L" in res.resultData && "U" in res.resultData ? (
-              <div className="space-y-4">
-                <div>
-                  <h4 className="font-semibold text-text-primary mb-1">L Matrix:</h4>
-                  <div className="overflow-x-auto overflow-y-auto max-h-40">
-                    <table className="min-w-full bg-bg-secondary border border-border-light rounded-md">
-                      <tbody>
-                        {res.resultData.L.map((row, rowIndex) => (
-                          <tr key={rowIndex}>
-                            {row.map((cell, colIndex) => (
-                              <td
-                                key={`${rowIndex}-${colIndex}`}
-                                className="border border-border-light p-2 text-center text-text-secondary"
-                              >
-                                {typeof cell === "number" ? cell.toFixed(2) : String(cell)}
-                              </td>
-                            ))}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
                   </div>
                 </div>
-                <div>
-                  <h4 className="font-semibold text-text-primary mb-1">U Matrix:</h4>
-                  <div className="overflow-x-auto overflow-y-auto max-h-40">
-                    <table className="min-w-full bg-bg-secondary border border-border-light rounded-md">
-                      <tbody>
-                        {res.resultData.U.map((row, rowIndex) => (
-                          <tr key={rowIndex}>
-                            {row.map((cell, colIndex) => (
-                              <td
-                                key={`${rowIndex}-${colIndex}`}
-                                className="border border-border-light p-2 text-center text-text-secondary"
-                              >
-                                {typeof cell === "number" ? cell.toFixed(2) : String(cell)}
-                              </td>
-                            ))}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+              )}
+
+              {typeof res.resultData === "string" || typeof res.resultData === "number" ? (
+                <p className="text-lg font-medium text-gray-800 dark:text-gray-200">{res.resultData}</p>
+              ) : Array.isArray(res.resultData) && res.resultData.every((row) => Array.isArray(row)) ? (
+                <div className="overflow-x-auto overflow-y-auto max-h-40 shadow-inner rounded-md">
+                  <table className="min-w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-500 rounded-md">
+                    <tbody>
+                      {res.resultData.map((row, rowIndex) => (
+                        <tr key={rowIndex}>
+                          {row.map((cell, colIndex) => (
+                            <td
+                              key={`${rowIndex}-${colIndex}`}
+                              className="border border-gray-300 dark:border-gray-500 p-2 text-center text-gray-700 dark:text-gray-200"
+                            >
+                              {typeof cell === "number" ? cell.toFixed(2) : String(cell)}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : typeof res.resultData === "object" && "L" in res.resultData && "U" in res.resultData ? (
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-1">L Matrix:</h4>
+                    <div className="overflow-x-auto overflow-y-auto max-h-40 shadow-inner rounded-md">
+                      <table className="min-w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-500 rounded-md">
+                        <tbody>
+                          {res.resultData.L.map((row, rowIndex) => (
+                            <tr key={rowIndex}>
+                              {row.map((cell, colIndex) => (
+                                <td
+                                  key={`${rowIndex}-${colIndex}`}
+                                  className="border border-gray-300 dark:border-gray-500 p-2 text-center text-gray-700 dark:text-gray-200"
+                                >
+                                  {typeof cell === "number" ? cell.toFixed(2) : String(cell)}
+                                </td>
+                              ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-800 dark:text-gray-200 mb-1">U Matrix:</h4>
+                    <div className="overflow-x-auto overflow-y-auto max-h-40 shadow-inner rounded-md">
+                      <table className="min-w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-500 rounded-md">
+                        <tbody>
+                          {res.resultData.U.map((row, rowIndex) => (
+                            <tr key={rowIndex}>
+                              {row.map((cell, colIndex) => (
+                                <td
+                                  key={`${rowIndex}-${colIndex}`}
+                                  className="border border-gray-300 dark:border-gray-500 p-2 text-center text-gray-700 dark:text-gray-200"
+                                >
+                                  {typeof cell === "number" ? cell.toFixed(2) : String(cell)}
+                                </td>
+                              ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ) : (
-              <p className="text-lg font-medium text-gray-800">Invalid result format.</p>
-            )}
-          </div>
-        ))}
+              ) : (
+                <p className="text-lg font-medium text-gray-800 dark:text-gray-200">Invalid result format.</p>
+              )}
+            </div>
+          )
+        })}
       </div>
     </div>
   )
