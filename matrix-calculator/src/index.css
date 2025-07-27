@@ -3,16 +3,14 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
-/* Custom Keyframes for Animations */
-@keyframes border-color-pulse {
-  0%,
-  100% {
-    border-color: #a3e635; /* lime-400 */
-  }
-  50% {
-    border-color: #e879f9; /* fuchsia-400 */
-  }
+/* variables */
+:root {
+  --border-color: #93a0ddcc;
+  --rotating-border-color: #dbffdd;
 }
+
+/* Custom Keyframes for Animations */
+/* Removed @keyframes border-color-pulse */
 
 @keyframes text-glow {
   0%,
@@ -69,9 +67,47 @@
   }
 }
 
+/* New keyframes for sequential border glow */
+@keyframes border-glow-cycle {
+  0% {
+    border-left-color: var(--rotating-border-color); /* blue-500 */
+    border-top-color: var(--border-color);
+    border-right-color: var(--border-color);
+    border-bottom-color: var(--border-color);
+  }
+  25% {
+    border-left-color: var(--border-color);
+    border-top-color: var(--rotating-border-color); /* green-500 */
+    border-right-color: var(--border-color);
+    border-bottom-color: var(--border-color);
+  }
+  50% {
+    border-left-color: var(--border-color);
+    border-top-color: var(--border-color);
+    border-right-color: var(--rotating-border-color); /* yellow-500 */
+    border-bottom-color: var(--border-color);
+  }
+  75% {
+    border-left-color: var(--border-color);
+    border-top-color: var(--border-color);
+    border-right-color: var(--border-color);
+    border-bottom-color: var(--rotating-border-color); /* red-500 */
+  }
+  100% {
+    border-left-color: var(--rotating-border-color); /* blue-500 */
+    border-top-color: var(--border-color);
+    border-right-color: var(--border-color);
+    border-bottom-color: var(--border-color);
+  }
+}
+
 /* Apply these animations using Tailwind classes */
-.animate-border-pulse {
-  animation: border-color-pulse 4s infinite alternate;
+.animate-border-glow-cycle {
+  animation: border-glow-cycle 4s linear infinite;
+}
+
+.animate-border-glow-cycle-B1 {
+  animation: border-glow-cycle 7s linear infinite;
 }
 
 .animate-text-glow {

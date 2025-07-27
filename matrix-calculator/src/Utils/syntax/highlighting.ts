@@ -7,6 +7,7 @@ export interface HighlightConfig {
   numberStyle: string
   parenthesesStyle: string
   defaultStyle: string
+  unrecognizedStyle: string // New style for unrecognized elements
 }
 
 export const DEFAULT_HIGHLIGHT_CONFIG: HighlightConfig = {
@@ -16,6 +17,7 @@ export const DEFAULT_HIGHLIGHT_CONFIG: HighlightConfig = {
   numberStyle: "text-green-600 dark:text-green-400",
   parenthesesStyle: "font-bold text-gray-600 dark:text-gray-400",
   defaultStyle: "text-gray-800 dark:text-gray-200",
+  unrecognizedStyle: "text-red-600 dark:text-red-400", // Default red for unrecognized
 }
 
 // Mathematical functions that should be highlighted
@@ -60,7 +62,7 @@ export const MATHEMATICAL_FUNCTIONS = [
 export const MATHEMATICAL_OPERATORS = ["+", "-", "*", "/", "^", "="]
 
 export interface HighlightToken {
-  type: "matrix" | "function" | "operator" | "number" | "parenthesis" | "default"
+  type: "matrix" | "function" | "operator" | "number" | "parenthesis" | "default" | "unrecognized" // Added 'unrecognized'
   value: string
   start: number
   end: number
@@ -130,7 +132,7 @@ export class SyntaxHighlighter {
         continue
       }
 
-      // Check for letters (potential matrices or functions)
+      // Check for letters (potential matrices or functions or unrecognized identifiers)
       if (/[A-Za-z]/.test(char)) {
         let identifier = char
         const start = i
@@ -140,8 +142,8 @@ export class SyntaxHighlighter {
           i++
         }
 
-        // Determine if it's a matrix, function, or default
-        let type: HighlightToken["type"] = "default"
+        // Determine if it's a matrix, function, or unrecognized
+        let type: HighlightToken["type"] = "unrecognized" // Default to unrecognized for identifiers
         if (this.availableMatrices.includes(identifier)) {
           type = "matrix"
         } else if (this.functions.includes(identifier.toLowerCase())) {
@@ -181,7 +183,7 @@ export class SyntaxHighlighter {
         continue
       }
 
-      // Default case
+      // Default case for any other single character (e.g., symbols not in operators)
       tokens.push({
         type: "default",
         value: char,
@@ -206,6 +208,8 @@ export class SyntaxHighlighter {
         return this.config.numberStyle
       case "parenthesis":
         return this.config.parenthesesStyle
+      case "unrecognized": // New case for unrecognized
+        return this.config.unrecognizedStyle
       default:
         return this.config.defaultStyle
     }

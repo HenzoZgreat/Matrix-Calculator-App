@@ -11,6 +11,7 @@ export const SYNTAX_THEMES = {
     numberStyle: "text-green-600 dark:text-green-400",
     parenthesesStyle: "font-bold text-gray-600 dark:text-gray-400",
     defaultStyle: "text-gray-800 dark:text-gray-200",
+    unrecognizedStyle: "text-red-600 dark:text-red-400", // Added for default theme
   },
   vibrant: {
     matrixStyle: "font-bold text-cyan-600 dark:text-cyan-400",
@@ -19,6 +20,7 @@ export const SYNTAX_THEMES = {
     numberStyle: "text-emerald-600 dark:text-emerald-400",
     parenthesesStyle: "font-bold text-indigo-600 dark:text-indigo-400",
     defaultStyle: "text-gray-800 dark:text-gray-200",
+    unrecognizedStyle: "text-red-500 dark:text-red-300", // Added for vibrant theme
   },
   monochrome: {
     matrixStyle: "font-bold text-gray-900 dark:text-gray-100",
@@ -27,6 +29,7 @@ export const SYNTAX_THEMES = {
     numberStyle: "text-gray-800 dark:text-gray-200",
     parenthesesStyle: "font-bold text-gray-500 dark:text-gray-500",
     defaultStyle: "text-gray-800 dark:text-gray-200",
+    unrecognizedStyle: "text-red-700 dark:text-red-300", // Added for monochrome theme
   },
 } as const
 
@@ -48,13 +51,11 @@ export const getAllFunctions = (): string[] => {
 
 // Helper function to add custom functions to existing categories
 export const addCustomFunctions = (category: keyof typeof FUNCTION_CATEGORIES, functions: string[]): string[] => {
-    console.log(`Adding custom functions to category: ${category}`, functions)
+  console.log(`Adding custom functions to category: ${category}`, functions)
   const existingFunctions = getAllFunctions()
   const newFunctions = functions.filter((f) => !existingFunctions.includes(f))
   return [...existingFunctions, ...newFunctions]
 }
-
-
 
 // Configuration manager for syntax highlighting
 export class SyntaxConfig {

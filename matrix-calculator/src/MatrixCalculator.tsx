@@ -32,10 +32,24 @@ export default function MatrixCalculatorApp() {
   } = useMatrixState()
 
   const { results, addResult, removeResult, clearResults } = useResultState()
-  const { notifications, showNotification, removeNotification } = useNotifications()
+  const { notifications, showNotification, removeNotification } = useNotifications() // Main notification instance
 
   const resultDisplayRef = useRef<HTMLDivElement>(null)
-  const matrixListRef = useRef<HTMLDivElement>(null) // New ref for MatrixList
+  const matrixListDesktopRef = useRef<HTMLDivElement>(null) // Ref for desktop MatrixList
+  const matrixListMobileRef = useRef<HTMLDivElement>(null) // Ref for mobile MatrixList
+
+  const [lastCreatedMatrixId, setLastCreatedMatrixId] = useState<string | null>(null)
+  const [isDesktop, setIsDesktop] = useState(false)
+
+  // Determine if desktop or mobile
+  useEffect(() => {
+    const checkIsDesktop = () => {
+      setIsDesktop(window.innerWidth >= 768) // Tailwind's 'md' breakpoint
+    }
+    checkIsDesktop()
+    window.addEventListener("resize", checkIsDesktop)
+    return () => window.removeEventListener("resize", checkIsDesktop)
+  }, [])
 
   // Set initial active tab when matrices are created
   useEffect(() => {
@@ -60,6 +74,7 @@ export default function MatrixCalculatorApp() {
       }
 
       addMatrix(newMatrix)
+      setLastCreatedMatrixId(newMatrix.id) // Set the ID of the newly created matrix
 
       if (errorMessage) {
         showNotification(errorMessage, "error")
@@ -67,9 +82,13 @@ export default function MatrixCalculatorApp() {
         showNotification(`Matrix ${label} created successfully!`, "success")
       }
 
-      // Scroll to the MatrixList (matrix editor) instead of results
-      if (matrixListRef.current) {
-        matrixListRef.current.scrollIntoView({ behavior: "smooth", block: "start" })
+      // Scroll to the MatrixList (matrix editor) only on success
+      if (!errorMessage) {
+        if (isDesktop && matrixListDesktopRef.current) {
+          matrixListDesktopRef.current.scrollIntoView({ behavior: "smooth", block: "start" })
+        } else if (!isDesktop && matrixListMobileRef.current) {
+          matrixListMobileRef.current.scrollIntoView({ behavior: "smooth", block: "start" })
+        }
       }
     } else {
       showNotification(errorMessage || `Failed to create matrix of type ${type}.`, "error")
@@ -121,6 +140,7 @@ export default function MatrixCalculatorApp() {
   }
 
   const handleEvaluateEquation = (expression: string) => {
+    let evaluationSuccess = false // Flag to track evaluation success
     try {
       const tokens = tokenize(expression)
 
@@ -143,6 +163,7 @@ export default function MatrixCalculatorApp() {
           resultData: Array.isArray(result) && result.every((row) => Array.isArray(row)) ? result : result,
           equation: expression, // Store the original equation
         })
+        evaluationSuccess = true // Set flag to true on success
       } else {
         showNotification(evaluation.error || "Evaluation failed", "error")
       }
@@ -151,7 +172,8 @@ export default function MatrixCalculatorApp() {
       showNotification(error instanceof Error ? error.message : "Unknown error", "error")
     }
 
-    if (resultDisplayRef.current) {
+    // Only scroll to results if evaluation was successful
+    if (evaluationSuccess && resultDisplayRef.current) {
       resultDisplayRef.current.scrollIntoView({ behavior: "smooth" })
     }
   }
@@ -230,13 +252,16 @@ export default function MatrixCalculatorApp() {
         <h1 className="text-4xl font-extrabold text-text-primary mb-8">Matrix Calculator</h1>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-grow">
-          <MatrixCreator onCreateMatrix={handleCreateMatrix} currentMatrixCount={matrices.length} />
+          {/* Pass showNotification to MatrixCreator */}
+          <MatrixCreator
+            onCreateMatrix={handleCreateMatrix}
+            currentMatrixCount={matrices.length}
+            showNotification={showNotification}
+          />
           <EquationInput onEvaluate={handleEvaluateEquation} matrixLabels={matrixLabels} />
         </div>
 
-        <div className="mt-6 md:block hidden" ref={matrixListRef}>
-          {" "}
-          {/* Added ref here */}
+        <div className="mt-6 md:block hidden" ref={matrixListDesktopRef}>
           <MatrixList
             matrices={matrices}
             onCellChange={updateMatrixCell}
@@ -249,12 +274,11 @@ export default function MatrixCalculatorApp() {
             copiedMatrixDims={copiedMatrixDims}
             activeTabId={activeTabId}
             setActiveTabId={setActiveTabId}
+            scrollTargetId={lastCreatedMatrixId} // Pass scroll target
           />
         </div>
 
-        <div className="mt-6 md:hidden block">
-          {" "}
-          {/* Mobile view, also needs ref if it's the target */}
+        <div className="mt-6 md:hidden block" ref={matrixListMobileRef}>
           <MatrixList
             matrices={matrices}
             onCellChange={updateMatrixCell}
@@ -267,6 +291,7 @@ export default function MatrixCalculatorApp() {
             copiedMatrixDims={copiedMatrixDims}
             activeTabId={activeTabId}
             setActiveTabId={setActiveTabId}
+            scrollTargetId={lastCreatedMatrixId} // Pass scroll target
           />
         </div>
 

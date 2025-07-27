@@ -5,16 +5,27 @@ import type React from "react"
 import { useState, useCallback, useMemo } from "react"
 import { getNextMatrixLabel } from "../../Utils/matrix" // Adjust path as needed
 import { MatrixTypeDropdown } from "./MatrixTypeDropdown"
+// Removed: import { useNotifications } from "../../hooks/useNotifications" // Import useNotifications
 
 interface MatrixCreatorProps {
   onCreateMatrix: (rows: number, cols: number, label: string, type: string) => void
   currentMatrixCount: number
+  showNotification: (message: string, type: "success" | "error") => void // New prop
 }
 
-export const MatrixCreator: React.FC<MatrixCreatorProps> = ({ onCreateMatrix, currentMatrixCount }) => {
+// Define maximum allowed dimensions
+const MAX_ROWS = 10
+const MAX_COLS = 10
+
+export const MatrixCreator: React.FC<MatrixCreatorProps> = ({
+  onCreateMatrix,
+  currentMatrixCount,
+  showNotification,
+}) => {
   const [rows, setRows] = useState(3)
   const [cols, setCols] = useState(3)
   const [matrixType, setMatrixType] = useState<string>("random") // New state for matrix type
+  // Removed: const { showNotification } = useNotifications() // Use the notification hook
 
   const matrixTypeOptions = useMemo(
     () => [
@@ -41,10 +52,10 @@ export const MatrixCreator: React.FC<MatrixCreatorProps> = ({ onCreateMatrix, cu
         ].sort((a, b) => a.label.localeCompare(b.label)),
       },
       {
-        category: "Advanced Properties",
+        category: "Advanced Properties (Placeholder)",
         types: [
           { value: "boolean", label: "Boolean Matrix" },
-          // { value: "hermitian", label: "Hermitian Matrix" },
+          { value: "hermitian", label: "Hermitian Matrix" },
           { value: "idempotent", label: "Idempotent Matrix" },
           { value: "involutory", label: "Involutory Matrix" },
           { value: "left-stochastic", label: "Left Stochastic Matrix" },
@@ -61,12 +72,30 @@ export const MatrixCreator: React.FC<MatrixCreatorProps> = ({ onCreateMatrix, cu
   )
 
   const handleCreate = useCallback(() => {
+    if (rows > MAX_ROWS || cols > MAX_COLS) {
+      showNotification(`Dimensions exceed maximum allowed: Max Rows: ${MAX_ROWS}, Max Columns: ${MAX_COLS}.`, "error")
+      return
+    }
+    if (rows < 1 || cols < 1) {
+      showNotification("Dimensions must be at least 1x1.", "error")
+      return
+    }
+
     const label = getNextMatrixLabel(currentMatrixCount)
     onCreateMatrix(rows, cols, label, matrixType)
-  }, [rows, cols, onCreateMatrix, currentMatrixCount, matrixType])
+  }, [rows, cols, onCreateMatrix, currentMatrixCount, matrixType, showNotification])
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Enter") {
+        handleCreate()
+      }
+    },
+    [handleCreate],
+  )
 
   return (
-    <div className="relative z-20 bg-transparent backdrop-blur-md p-6 rounded-lg shadow-xl border-2 border-transparent animate-border-pulse transition-colors duration-300">
+    <div className="relative z-30 bg-transparent backdrop-blur-md p-6 rounded-lg shadow-xl border-2 border-transparent animate-border-glow-cycle transition-colors duration-300">
       <h2 className="text-2xl font-semibold mb-4 text-text-primary">Create New Matrix</h2>
       <div className="flex flex-col gap-4 mb-4">
         <div className="flex items-center gap-4">
@@ -79,7 +108,9 @@ export const MatrixCreator: React.FC<MatrixCreatorProps> = ({ onCreateMatrix, cu
               type="number"
               value={rows}
               onChange={(e) => setRows(Number(e.target.value))}
+              onKeyDown={handleKeyDown}
               min="1"
+              max={MAX_ROWS}
               className="w-20 border-b-2 border-border-light bg-transparent text-text-primary p-2 focus:outline-none focus:border-blue-400 dark:focus:border-blue-500 transition-colors duration-300"
             />
           </div>
@@ -92,7 +123,9 @@ export const MatrixCreator: React.FC<MatrixCreatorProps> = ({ onCreateMatrix, cu
               type="number"
               value={cols}
               onChange={(e) => setCols(Number(e.target.value))}
+              onKeyDown={handleKeyDown}
               min="1"
+              max={MAX_COLS}
               className="w-20 border-b-2 border-border-light bg-transparent text-text-primary p-2 focus:outline-none focus:border-blue-400 dark:focus:border-blue-500 transition-colors duration-300"
             />
           </div>

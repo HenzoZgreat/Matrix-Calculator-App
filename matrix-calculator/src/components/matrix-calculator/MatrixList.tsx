@@ -2,7 +2,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useCallback, useEffect } from "react"
+import { useState, useCallback, useEffect, useRef } from "react"
 import type { Matrix } from "../../Utils/matrix"
 import { MatrixCard } from "./MatrixCard"
 import { MatrixOperationDropdown } from "./MatrixOperationDropdown" // Import the new component
@@ -19,6 +19,7 @@ interface MatrixListProps {
   copiedMatrixDims: { rows: number; cols: number } | null
   activeTabId: string | null
   setActiveTabId: (id: string | null) => void
+  scrollTargetId?: string | null // New prop for scrolling to a specific matrix
 }
 
 export const MatrixList: React.FC<MatrixListProps> = ({
@@ -33,8 +34,11 @@ export const MatrixList: React.FC<MatrixListProps> = ({
   copiedMatrixDims,
   activeTabId,
   setActiveTabId,
+  scrollTargetId, // Destructure new prop
 }) => {
   const [isDesktop, setIsDesktop] = useState(false)
+  const scrollContainerRef = useRef<HTMLDivElement>(null) // Ref for the horizontal scroll container
+  const matrixCardRefs = useRef<Map<string, HTMLDivElement>>(new Map()) // Map to store refs for each MatrixCard
 
   useEffect(() => {
     const checkIsDesktop = () => {
@@ -44,6 +48,16 @@ export const MatrixList: React.FC<MatrixListProps> = ({
     window.addEventListener("resize", checkIsDesktop)
     return () => window.removeEventListener("resize", checkIsDesktop)
   }, [])
+
+  // Effect to scroll to the newly created matrix on mobile
+  useEffect(() => {
+    if (!isDesktop && scrollTargetId && matrices.length > 0) {
+      const targetCard = matrixCardRefs.current.get(scrollTargetId)
+      if (targetCard) {
+        targetCard.scrollIntoView({ behavior: "smooth", inline: "end", block: "nearest" })
+      }
+    }
+  }, [isDesktop, scrollTargetId, matrices])
 
   const handleTabClick = useCallback(
     (matrixId: string) => {
@@ -56,12 +70,10 @@ export const MatrixList: React.FC<MatrixListProps> = ({
 
   if (isDesktop) {
     return (
-      <div
-        className="bg-transparent backdrop-blur-sm p-6 rounded-lg w-full h-auto relative transition-colors duration-300"
-        style={{
-          boxShadow: "0 8px 32px 0 rgba(31, 38, 135, 0.37), 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)"
-        }}
-      >        <h2 className="text-xl font-semibold mb-4 text-text-secondary">Matrix Editor</h2>
+      <div className="bg-transparent backdrop-blur-sm p-6 rounded-lg shadow-xl transition-colors duration-300 
+                      w-full h-auto relative border-2 border-transparent animate-border-glow-cycle-B1 
+                      transition-colors duration-300">
+        <h2 className="text-xl font-semibold mb-4 text-text-secondary">Matrix Editor</h2>
         {matrices.length === 0 ? (
           <p className="text-gray-500 dark:text-gray-400">
             No matrices created yet. Use the "Create New Matrix" section above.
@@ -107,6 +119,7 @@ export const MatrixList: React.FC<MatrixListProps> = ({
                   onCopyThisMatrix={onCopyMatrix}
                   onPasteToThisMatrix={onPasteMatrix}
                   onDeleteMatrix={onDeleteMatrix}
+                  onOperationSelect={onOperationSelect}
                   copiedMatrixData={copiedMatrixData}
                   copiedMatrixDims={copiedMatrixDims}
                 />
@@ -123,7 +136,8 @@ export const MatrixList: React.FC<MatrixListProps> = ({
     return (
       <div
         className="bg-transparent backdrop-blur-sm p-6 rounded-lg shadow-xl transition-colors duration-300
-                   w-full h-auto overflow-x-auto overflow-y-hidden"
+                   w-full h-auto overflow-x-auto overflow-y-hidden
+                   border-2 border-transparent animate-border-glow-cycle-B1 transition-colors duration-300"
       >
         <h2 className="text-xl font-semibold mb-4 text-text-secondary">Your Matrices</h2>
         {matrices.length === 0 ? (
@@ -131,7 +145,10 @@ export const MatrixList: React.FC<MatrixListProps> = ({
             No matrices created yet. Use the "Create New Matrix" section above.
           </p>
         ) : (
-          <div className="flex flex-nowrap gap-6 pb-4 md:flex-col md:flex-wrap md:justify-start md:overflow-x-hidden">
+          <div
+            ref={scrollContainerRef} // Apply ref to the scroll container
+            className="flex flex-nowrap gap-6 pb-4 md:flex-col md:flex-wrap md:justify-start md:overflow-x-hidden custom-scrollbar"
+          >
             {matrices.map((matrix) => (
               <MatrixCard
                 key={matrix.id}
@@ -141,9 +158,17 @@ export const MatrixList: React.FC<MatrixListProps> = ({
                 onCopyThisMatrix={onCopyMatrix}
                 onPasteToThisMatrix={onPasteMatrix}
                 onDeleteMatrix={onDeleteMatrix}
-                // onOperationSelect={onOperationSelect} // Still passed for mobile view's individual cards
+                onOperationSelect={onOperationSelect} // Still passed for mobile view's individual cards
                 copiedMatrixData={copiedMatrixData}
                 copiedMatrixDims={copiedMatrixDims}
+                ref={(el) => {
+                  // Store ref for each MatrixCard
+                  if (el) {
+                    matrixCardRefs.current.set(matrix.id, el)
+                  } else {
+                    matrixCardRefs.current.delete(matrix.id)
+                  }
+                }}
               />
             ))}
           </div>

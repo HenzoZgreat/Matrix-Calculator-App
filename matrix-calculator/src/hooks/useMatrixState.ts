@@ -20,11 +20,27 @@ export const useMatrixState = () => {
   const removeMatrix = useCallback(
     (matrixId: string) => {
       setMatrices((prev) => {
-        const updated = prev.filter((m) => m.id !== matrixId)
+        const filteredMatrices = prev.filter((m) => m.id !== matrixId)
+
+        // Re-label the remaining matrices sequentially from 'A'
+        const reLabeledMatrices = filteredMatrices.map((matrix, index) => ({
+          ...matrix,
+          label: String.fromCharCode(65 + index), // Assign new label 'A', 'B', 'C', ...
+        }))
+
+        // Handle activeTabId if the deleted matrix was active
         if (activeTabId === matrixId) {
-          setActiveTabId(updated.length > 0 ? updated[0].id : null)
+          setActiveTabId(reLabeledMatrices.length > 0 ? reLabeledMatrices[0].id : null)
+        } else if (activeTabId) {
+          // If the active tab was not deleted, ensure its label is updated if it changed
+          const currentActiveMatrix = reLabeledMatrices.find((m) => m.id === activeTabId)
+          if (!currentActiveMatrix) {
+            // If active matrix was somehow removed or not found in re-labeled list
+            setActiveTabId(reLabeledMatrices.length > 0 ? reLabeledMatrices[0].id : null)
+          }
         }
-        return updated
+
+        return reLabeledMatrices
       })
     },
     [activeTabId],

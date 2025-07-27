@@ -86,7 +86,7 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({
         <h2 className="text-xl font-semibold text-text-secondary">Results</h2>
         <button
           onClick={onClearResults}
-          className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md text-sm transition-colors duration-200 shadow-lg"
+          className="flex items-center gap-2 bg-gray-700 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md text-sm transition-colors duration-200 shadow-lg"
           title="Clear all results"
         >
           <Trash2Icon className="w-4 h-4" />

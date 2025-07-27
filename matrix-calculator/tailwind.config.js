@@ -57,10 +57,7 @@ module.exports = {
       },
       // Define custom keyframes for animations
       keyframes: {
-        "border-color-pulse": {
-          "0%, 100%": { "border-color": "#60a5fa" }, // blue-400
-          "50%": { "border-color": "#a78bfa" }, // purple-400
-        },
+        // Removed "border-color-pulse" keyframe
         "text-glow": {
           "0%, 100%": { "text-shadow": "0 0 5px rgba(59, 130, 246, 0.5)" }, // blue-500
           "50%": { "text-shadow": "0 0 15px rgba(99, 102, 241, 0.8)" }, // indigo-500
@@ -76,10 +73,11 @@ module.exports = {
       },
       // Map keyframes to animation utilities
       animation: {
-        "border-pulse": "border-color-pulse 4s infinite alternate",
+        // Removed "border-pulse" animation
         "text-glow": "text-glow 3s infinite alternate",
         "slide-in-up": "slide-in-up 0.3s ease-out forwards",
         "slide-out-down": "slide-out-down 0.3s ease-in forwards",
+        "border-glow-cycle": "border-glow-cycle 4s linear infinite", // New animation
       },
       borderRadius: {
         lg: "var(--radius)",

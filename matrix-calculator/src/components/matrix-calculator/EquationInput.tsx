@@ -31,7 +31,7 @@ export const EquationInput: React.FC<EquationInputProps> = ({ onEvaluate, matrix
   const placeholderText = `e.g., A + B * inv(C), det(A), 2^3. Available matrices: ${matrixLabels.join(", ")}`
 
   return (
-    <div className="relative z-20 bg-transparent backdrop-blur-md p-6 rounded-lg shadow-xl border-2 border-transparent animate-border-pulse transition-colors duration-300">
+    <div className="relative z-20 bg-transparent backdrop-blur-md p-6 rounded-lg shadow-xl border-2 border-transparent animate-border-glow-cycle transition-colors duration-300">
       <h2 className="text-2xl font-semibold mb-4 text-text-primary">Equation Input</h2>
       <div className="flex flex-col md:flex-row gap-4">
         <div className="flex-grow bg-white dark:bg-[var(--color-bg-secondary)] border-b-2 border-blue-400 dark:border-blue-600 rounded-md p-2 h-12 transition-colors duration-300">
@@ -72,6 +72,10 @@ export const EquationInput: React.FC<EquationInputProps> = ({ onEvaluate, matrix
           <span className="flex items-center gap-1">
             <span className="text-green-600 dark:text-green-400">123</span>
             <span>Numbers</span>
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="text-red-600 dark:text-red-400">xyz</span>
+            <span>Unrecognized</span>
           </span>
         </div>
       </div>

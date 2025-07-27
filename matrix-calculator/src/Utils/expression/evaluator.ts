@@ -206,10 +206,8 @@ export class ExpressionEvaluator {
     }
     this.position++
 
-    console.log("Function:", functionToken.value, "Arg:", arg)
     const input = arg
     const { result } = MatrixOperationService.performOperation(functionToken.value.toLowerCase(), input)
-    console.log("Operation result:", result)
     if (result === undefined || result === null) {
       throw new Error(`Operation ${functionToken.value} returned invalid result`)
     }
