@@ -2,7 +2,6 @@
 "use client"
 
 import { useCallback } from "react"
-
 import type React from "react"
 import { useState, useEffect } from "react"
 import { SunIcon, MoonIcon } from "lucide-react"
@@ -39,10 +38,33 @@ export const DarkModeToggle: React.FC = () => {
   return (
     <button
       onClick={toggleDarkMode}
-      className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
-      aria-label="Toggle dark mode"
+      className="group relative flex items-center justify-center w-10 h-10 rounded-xl
+                 bg-[var(--color-bg-tertiary)] hover:bg-[var(--color-accent-glow)]
+                 border border-[var(--color-border-light)]
+                 transition-all duration-300 ease-out
+                 hover:border-[var(--color-accent-primary)] hover:shadow-md
+                 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent-primary)] focus-visible:ring-offset-2"
+      aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+      title={darkMode ? "Switch to light mode" : "Switch to dark mode"}
     >
-      {darkMode ? <SunIcon className="w-5 h-5" /> : <MoonIcon className="w-5 h-5" />}
+      <div className="relative w-5 h-5">
+        {/* Sun icon */}
+        <SunIcon
+          className={`absolute inset-0 w-5 h-5 text-amber-500 transition-all duration-500 ease-out
+            ${darkMode
+              ? "opacity-100 rotate-0 scale-100"
+              : "opacity-0 -rotate-90 scale-50"
+            }`}
+        />
+        {/* Moon icon */}
+        <MoonIcon
+          className={`absolute inset-0 w-5 h-5 text-indigo-400 transition-all duration-500 ease-out
+            ${darkMode
+              ? "opacity-0 rotate-90 scale-50"
+              : "opacity-100 rotate-0 scale-100"
+            }`}
+        />
+      </div>
     </button>
   )
 }

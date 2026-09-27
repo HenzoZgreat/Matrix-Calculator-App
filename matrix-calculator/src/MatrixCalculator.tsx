@@ -11,6 +11,7 @@ import {
   GlobalToolsMenu,
   ErrorNotification,
   SuccessNotification,
+  DarkModeToggle,
 } from "./components/matrix-calculator"
 import { useMatrixState } from "./hooks/useMatrixState"
 import { useResultState } from "./hooks/useResultState"
@@ -18,6 +19,20 @@ import { useNotifications } from "./hooks/useNotifications"
 import { createMatrixByType, type Matrix, type MatrixType } from "./Utils/matrix"
 import { MatrixOperationService } from "./Utils/services/matrixOperations"
 import { tokenize, validateTokens, ExpressionEvaluator } from "./Utils/expression"
+import { GridIcon } from "lucide-react"
+
+// ============================================================================
+// PERSISTENCE & STORAGE CONFIGURATION
+// You can easily locate and modify the storage keys and expiration time below:
+// ============================================================================
+/** LocalStorage key for storing the list of created matrices */
+export const MATRICES_STORAGE_KEY = "matrix_calc_matrices"
+
+/** SessionStorage key for calculation results history */
+export const RESULTS_STORAGE_KEY = "matrix_calc_results_history"
+
+/** Expiration time for results history in milliseconds (default: 24 hours / 1 day) */
+export const RESULTS_EXPIRY_TIME_MS = 24 * 60 * 60 * 1000 // 1 day (86,400,000 ms)
 
 export default function MatrixCalculatorApp() {
   const {
@@ -29,9 +44,12 @@ export default function MatrixCalculatorApp() {
     updateMatrix,
     updateMatrixCell,
     selectMatrix,
-  } = useMatrixState()
+  } = useMatrixState(MATRICES_STORAGE_KEY)
 
-  const { results, addResult, removeResult, clearResults } = useResultState()
+  const { results, addResult, removeResult, clearResults } = useResultState(
+    RESULTS_STORAGE_KEY,
+    RESULTS_EXPIRY_TIME_MS,
+  )
   const { notifications, showNotification, removeNotification } = useNotifications() // Main notification instance
 
   const resultDisplayRef = useRef<HTMLDivElement>(null)
@@ -40,6 +58,7 @@ export default function MatrixCalculatorApp() {
 
   const [lastCreatedMatrixId, setLastCreatedMatrixId] = useState<string | null>(null)
   const [isDesktop, setIsDesktop] = useState(false)
+  const [navbarScrolled, setNavbarScrolled] = useState(false)
 
   // Determine if desktop or mobile
   useEffect(() => {
@@ -49,6 +68,15 @@ export default function MatrixCalculatorApp() {
     checkIsDesktop()
     window.addEventListener("resize", checkIsDesktop)
     return () => window.removeEventListener("resize", checkIsDesktop)
+  }, [])
+
+  // Navbar scroll shadow
+  useEffect(() => {
+    const handleScroll = () => {
+      setNavbarScrolled(window.scrollY > 10)
+    }
+    window.addEventListener("scroll", handleScroll, { passive: true })
+    return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
   // Set initial active tab when matrices are created
@@ -215,23 +243,51 @@ export default function MatrixCalculatorApp() {
   const selectedMatrixIds = matrices.filter((m) => m.isSelected).map((m) => m.id)
 
   return (
-    <div
-      className="min-h-screen bg-gray-100 dark:bg-[var(--color-bg-primary)] text-gray-900 dark:text-gray-100 transition-colors duration-300"
-      style={{
-        background: `
-          linear-gradient(to bottom, transparent 0%, rgba(156, 169, 175, 1) 500px),
-          url('https://static.vecteezy.com/system/resources/previews/059/500/705/non_2x/an-abstract-geometric-background-with-a-low-poly-triangular-pattern-in-shades-of-gray-and-blue-creating-a-modern-and-stylish-digital-design-vector.jpg') no-repeat top / 100% 500px
-        `,
-        backgroundAttachment: "fixed",
-      }}
-    >
-      <GlobalToolsMenu
-        onOperationSelect={handleOperationSelect}
-        selectedMatrixIds={selectedMatrixIds}
-        matrices={matrices}
-      />
+    <div className="min-h-screen bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] transition-colors duration-500">
+      {/* Ambient Background Mesh */}
+      <div className="bg-mesh" />
 
-      {/* Notifications */}
+      {/* ============================================================= */}
+      {/*  NAVBAR — Sticky glass bar with logo, tools menu, dark toggle */}
+      {/* ============================================================= */}
+      <nav
+        className={`navbar-glass fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          navbarScrolled ? "scrolled" : ""
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Left: Logo & Title */}
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-[var(--color-accent-primary)] to-[var(--color-accent-secondary)] shadow-md">
+                <GridIcon className="w-5 h-5 text-white" />
+              </div>
+              <div className="flex flex-col">
+                <h1 className="text-base font-bold tracking-tight text-[var(--color-text-primary)] leading-tight">
+                  Matrix Calculator
+                </h1>
+                <span className="text-[10px] font-medium text-[var(--color-text-muted)] tracking-wide uppercase hidden sm:block">
+                  Compute • Evaluate • Visualize
+                </span>
+              </div>
+            </div>
+
+            {/* Right: Global Tools + Dark Mode Toggle */}
+            <div className="flex items-center gap-2">
+              <GlobalToolsMenu
+                onOperationSelect={handleOperationSelect}
+                selectedMatrixIds={selectedMatrixIds}
+                matrices={matrices}
+              />
+              <DarkModeToggle />
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* ===================== */}
+      {/*  NOTIFICATIONS        */}
+      {/* ===================== */}
       {notifications.map((notification) =>
         notification.type === "error" ? (
           <ErrorNotification
@@ -248,54 +304,79 @@ export default function MatrixCalculatorApp() {
         ),
       )}
 
-      <div className="container mx-auto p-4 space-y-6 bg-transparent min-h-screen pt-20">
-        <h1 className="text-4xl font-extrabold text-text-primary mb-8">Matrix Calculator</h1>
+      {/* ===================== */}
+      {/*  MAIN CONTENT         */}
+      {/* ===================== */}
+      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16 space-y-8">
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-grow">
-          {/* Pass showNotification to MatrixCreator */}
-          <MatrixCreator
-            onCreateMatrix={handleCreateMatrix}
-            currentMatrixCount={matrices.length}
-            showNotification={showNotification}
-          />
-          <EquationInput onEvaluate={handleEvaluateEquation} matrixLabels={matrixLabels} />
-        </div>
+        {/* ————————————————————— */}
+        {/*  ROW 1: Create + Equation Input  */}
+        {/* ————————————————————— */}
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in-scale relative z-20">
+          {/* Matrix Creator Card - Elevated z-index so dropdown floats above equation box on smaller screens */}
+          <div className="section-card p-6 relative z-30">
+            <MatrixCreator
+              onCreateMatrix={handleCreateMatrix}
+              currentMatrixCount={matrices.length}
+              showNotification={showNotification}
+            />
+          </div>
 
-        <div className="mt-6 md:block hidden" ref={matrixListDesktopRef}>
-          <MatrixList
-            matrices={matrices}
-            onCellChange={updateMatrixCell}
-            onSelectMatrix={selectMatrix}
-            onCopyMatrix={handleCopyMatrix}
-            onPasteMatrix={handlePasteMatrix}
-            onDeleteMatrix={removeMatrix}
-            onOperationSelect={handleOperationSelect}
-            copiedMatrixData={copiedMatrixData}
-            copiedMatrixDims={copiedMatrixDims}
-            activeTabId={activeTabId}
-            setActiveTabId={setActiveTabId}
-            scrollTargetId={lastCreatedMatrixId} // Pass scroll target
-          />
-        </div>
+          {/* Equation Input Card */}
+          <div className="section-card p-6 relative z-10">
+            <EquationInput onEvaluate={handleEvaluateEquation} matrixLabels={matrixLabels} />
+          </div>
+        </section>
 
-        <div className="mt-6 md:hidden block" ref={matrixListMobileRef}>
-          <MatrixList
-            matrices={matrices}
-            onCellChange={updateMatrixCell}
-            onSelectMatrix={selectMatrix}
-            onCopyMatrix={handleCopyMatrix}
-            onPasteMatrix={handlePasteMatrix}
-            onDeleteMatrix={removeMatrix}
-            onOperationSelect={handleOperationSelect}
-            copiedMatrixData={copiedMatrixData}
-            copiedMatrixDims={copiedMatrixDims}
-            activeTabId={activeTabId}
-            setActiveTabId={setActiveTabId}
-            scrollTargetId={lastCreatedMatrixId} // Pass scroll target
-          />
-        </div>
+        {/* ————————————————————— */}
+        {/*  ROW 2: Matrix Editor */}
+        {/* ————————————————————— */}
+        <section className="animate-fade-in-scale stagger-2">
+          {/* Desktop Matrix List */}
+          <div className="md:block hidden" ref={matrixListDesktopRef}>
+            <div className="section-card p-6">
+              <MatrixList
+                matrices={matrices}
+                onCellChange={updateMatrixCell}
+                onSelectMatrix={selectMatrix}
+                onCopyMatrix={handleCopyMatrix}
+                onPasteMatrix={handlePasteMatrix}
+                onDeleteMatrix={removeMatrix}
+                onOperationSelect={handleOperationSelect}
+                copiedMatrixData={copiedMatrixData}
+                copiedMatrixDims={copiedMatrixDims}
+                activeTabId={activeTabId}
+                setActiveTabId={setActiveTabId}
+                scrollTargetId={lastCreatedMatrixId}
+              />
+            </div>
+          </div>
 
-        <div className="mt-6 w-full" ref={resultDisplayRef}>
+          {/* Mobile Matrix List */}
+          <div className="md:hidden block" ref={matrixListMobileRef}>
+            <div className="section-card p-6">
+              <MatrixList
+                matrices={matrices}
+                onCellChange={updateMatrixCell}
+                onSelectMatrix={selectMatrix}
+                onCopyMatrix={handleCopyMatrix}
+                onPasteMatrix={handlePasteMatrix}
+                onDeleteMatrix={removeMatrix}
+                onOperationSelect={handleOperationSelect}
+                copiedMatrixData={copiedMatrixData}
+                copiedMatrixDims={copiedMatrixDims}
+                activeTabId={activeTabId}
+                setActiveTabId={setActiveTabId}
+                scrollTargetId={lastCreatedMatrixId}
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* ————————————————————— */}
+        {/*  ROW 3: Results       */}
+        {/* ————————————————————— */}
+        <section className="animate-fade-in-scale stagger-3" ref={resultDisplayRef}>
           <ResultDisplay
             results={results}
             onRemoveResult={removeResult}
@@ -304,8 +385,23 @@ export default function MatrixCalculatorApp() {
             onPasteResultToMatrix={handlePasteResultToMatrix}
             onShowNotification={showNotification}
           />
+        </section>
+      </main>
+
+      {/* ===================== */}
+      {/*  FOOTER               */}
+      {/* ===================== */}
+      <footer className="relative z-10 border-t border-[var(--color-border-light)] py-6 mt-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <p className="text-xs text-[var(--color-text-muted)]">
+            © {new Date().getFullYear()} Matrix Calculator — Built for students & engineers
+          </p>
+          <div className="flex items-center gap-1 text-xs text-[var(--color-text-muted)]">
+            <span>Powered by</span>
+            <span className="text-accent-gradient font-semibold">React + TypeScript</span>
+          </div>
         </div>
-      </div>
+      </footer>
     </div>
   )
 }

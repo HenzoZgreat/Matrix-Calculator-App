@@ -1,90 +1,67 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  darkMode: ["class"], // Enable dark mode based on 'dark' class
+  darkMode: ["class"],
   content: [
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/**/*.{js,ts,jsx,tsx,mdx}",
-    // Add any other paths where your Tailwind classes are used
   ],
   theme: {
     extend: {
-      // Define custom colors using CSS variables from globals.css
+      fontFamily: {
+        sans: ["'Inter'", "system-ui", "-apple-system", "sans-serif"],
+        mono: ["'JetBrains Mono'", "'Fira Code'", "monospace"],
+      },
       colors: {
         "bg-primary": "var(--color-bg-primary)",
         "bg-secondary": "var(--color-bg-secondary)",
+        "bg-tertiary": "var(--color-bg-tertiary)",
         "text-primary": "var(--color-text-primary)",
         "text-secondary": "var(--color-text-secondary)",
+        "text-muted": "var(--color-text-muted)",
         "border-light": "var(--color-border-light)",
         "border-dark": "var(--color-border-dark)",
         "card-bg": "var(--color-card-bg)",
-        // These HSL colors were in your previous config.
-        // If you are not using them, you can remove them.
-        // Otherwise, ensure their CSS variables are defined in globals.css.
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
-        primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
-        },
-        secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
-        },
-        destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
-        },
-        muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
-        },
-        accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
-        },
-        popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
-        },
-        card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
-        },
+        "accent-primary": "var(--color-accent-primary)",
+        "accent-secondary": "var(--color-accent-secondary)",
       },
-      // Define custom keyframes for animations
       keyframes: {
-        // Removed "border-color-pulse" keyframe
         "text-glow": {
-          "0%, 100%": { "text-shadow": "0 0 5px rgba(59, 130, 246, 0.5)" }, // blue-500
-          "50%": { "text-shadow": "0 0 15px rgba(99, 102, 241, 0.8)" }, // indigo-500
+          "0%, 100%": { "text-shadow": "0 0 5px rgba(99, 102, 241, 0.4)" },
+          "50%": { "text-shadow": "0 0 20px rgba(139, 92, 246, 0.6)" },
         },
         "slide-in-up": {
-          from: { transform: "translateY(100%)", opacity: "0" },
+          from: { transform: "translateY(20px)", opacity: "0" },
           to: { transform: "translateY(0)", opacity: "1" },
         },
         "slide-out-down": {
           from: { transform: "translateY(0)", opacity: "1" },
-          to: { transform: "translateY(100%)", opacity: "0" },
+          to: { transform: "translateY(20px)", opacity: "0" },
+        },
+        "fade-in-scale": {
+          from: { transform: "scale(0.97)", opacity: "0" },
+          to: { transform: "scale(1)", opacity: "1" },
         },
       },
-      // Map keyframes to animation utilities
       animation: {
-        // Removed "border-pulse" animation
         "text-glow": "text-glow 3s infinite alternate",
-        "slide-in-up": "slide-in-up 0.3s ease-out forwards",
-        "slide-out-down": "slide-out-down 0.3s ease-in forwards",
-        "border-glow-cycle": "border-glow-cycle 4s linear infinite", // New animation
+        "slide-in-up": "slide-in-up 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+        "slide-out-down": "slide-out-down 0.25s ease-in forwards",
+        "fade-in-scale": "fade-in-scale 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+        "border-glow-cycle": "border-glow-cycle 5s linear infinite",
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        lg: "var(--radius, 12px)",
+        md: "calc(var(--radius, 12px) - 2px)",
+        sm: "calc(var(--radius, 12px) - 4px)",
+      },
+      boxShadow: {
+        "glass": "0 8px 32px rgba(0, 0, 0, 0.06)",
+        "glass-lg": "0 16px 48px rgba(0, 0, 0, 0.1)",
+        "glow": "0 0 40px rgba(99, 102, 241, 0.08)",
+        "glow-lg": "0 0 60px rgba(99, 102, 241, 0.12)",
       },
     },
   },
-  plugins: [], // Removed require("tailwindcss-animate")
+  plugins: [],
 }

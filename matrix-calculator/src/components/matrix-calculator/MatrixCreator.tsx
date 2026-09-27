@@ -95,12 +95,12 @@ export const MatrixCreator: React.FC<MatrixCreatorProps> = ({
   )
 
   return (
-    <div className="relative z-30 bg-transparent backdrop-blur-md p-6 rounded-lg shadow-xl border-2 border-transparent animate-border-glow-cycle transition-colors duration-300">
-      <h2 className="text-2xl font-semibold mb-4 text-text-primary">Create New Matrix</h2>
+    <div className="relative z-30">
+      <h2 className="text-lg font-bold mb-4 text-[var(--color-text-primary)] tracking-tight">Create New Matrix</h2>
       <div className="flex flex-col gap-4 mb-4">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <label htmlFor="rows" className="text-text-primary text-lg w-12">
+            <label htmlFor="rows" className="text-[var(--color-text-secondary)] text-sm font-medium w-12">
               Rows:
             </label>
             <input
@@ -111,11 +111,11 @@ export const MatrixCreator: React.FC<MatrixCreatorProps> = ({
               onKeyDown={handleKeyDown}
               min="1"
               max={MAX_ROWS}
-              className="w-20 border-b-2 border-border-light bg-transparent text-text-primary p-2 focus:outline-none focus:border-blue-400 dark:focus:border-blue-500 transition-colors duration-300"
+              className="w-20 border-b-2 border-[var(--color-border-light)] bg-transparent text-[var(--color-text-primary)] p-2 focus:outline-none focus:border-[var(--color-accent-primary)] transition-colors duration-300 rounded-none"
             />
           </div>
           <div className="flex items-center gap-2">
-            <label htmlFor="cols" className="text-text-primary text-lg w-12">
+            <label htmlFor="cols" className="text-[var(--color-text-secondary)] text-sm font-medium w-12">
               Cols:
             </label>
             <input
@@ -126,12 +126,12 @@ export const MatrixCreator: React.FC<MatrixCreatorProps> = ({
               onKeyDown={handleKeyDown}
               min="1"
               max={MAX_COLS}
-              className="w-20 border-b-2 border-border-light bg-transparent text-text-primary p-2 focus:outline-none focus:border-blue-400 dark:focus:border-blue-500 transition-colors duration-300"
+              className="w-20 border-b-2 border-[var(--color-border-light)] bg-transparent text-[var(--color-text-primary)] p-2 focus:outline-none focus:border-[var(--color-accent-primary)] transition-colors duration-300 rounded-none"
             />
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <label htmlFor="matrixType" className="text-text-primary text-lg">
+          <label htmlFor="matrixType" className="text-[var(--color-text-secondary)] text-sm font-medium">
             Type:
           </label>
           <MatrixTypeDropdown
@@ -144,7 +144,7 @@ export const MatrixCreator: React.FC<MatrixCreatorProps> = ({
       </div>
       <button
         onClick={handleCreate}
-        className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md transition-colors duration-200"
+        className="btn-accent w-full py-2.5 text-sm"
       >
         Create Matrix {getNextMatrixLabel(currentMatrixCount)}
       </button>
