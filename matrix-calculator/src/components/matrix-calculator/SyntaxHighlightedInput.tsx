@@ -2,7 +2,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useRef, useEffect, useCallback } from "react"
+import { useState, useRef, useEffect, useCallback, forwardRef, useImperativeHandle } from "react"
 import { SyntaxHighlighter, DEFAULT_HIGHLIGHT_CONFIG, MATHEMATICAL_FUNCTIONS } from "../../Utils/syntax/highlighting"
 
 interface SyntaxHighlightedInputProps {
@@ -16,20 +16,26 @@ interface SyntaxHighlightedInputProps {
   customFunctions?: string[]
 }
 
-export const SyntaxHighlightedInput: React.FC<SyntaxHighlightedInputProps> = ({
-  value,
-  onChange,
-  onKeyDown,
-  placeholder,
-  title,
-  className = "",
-  availableMatrices = [],
-  customFunctions,
-}) => {
-  const inputRef = useRef<HTMLInputElement>(null)
-  const highlightRef = useRef<HTMLDivElement>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
-  const [isFocused, setIsFocused] = useState(false)
+export const SyntaxHighlightedInput = forwardRef<HTMLInputElement, SyntaxHighlightedInputProps>(
+  (
+    {
+      value,
+      onChange,
+      onKeyDown,
+      placeholder,
+      title,
+      className = "",
+      availableMatrices = [],
+      customFunctions,
+    },
+    ref,
+  ) => {
+    const inputRef = useRef<HTMLInputElement>(null)
+    const highlightRef = useRef<HTMLDivElement>(null)
+    const containerRef = useRef<HTMLDivElement>(null)
+    const [isFocused, setIsFocused] = useState(false)
+
+    useImperativeHandle(ref, () => inputRef.current as HTMLInputElement)
 
   // Initialize syntax highlighter
   const highlighter = useRef(
@@ -158,4 +164,6 @@ export const SyntaxHighlightedInput: React.FC<SyntaxHighlightedInputProps> = ({
       )}
     </div>
   )
-}
+})
+
+SyntaxHighlightedInput.displayName = "SyntaxHighlightedInput"
